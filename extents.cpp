@@ -1,10 +1,26 @@
 /* vim: set ts=3 sw=3 tw=0 sts=3 et:*/
 /**
  * @file extents.cpp
- * @brief Blismedia programming challenge
+ * @brief Programming challenge
  * @author Ricky Cormier
  * @date 2013-01-17
+ *
+ * Please note, this is all in one file because that is what the spec
+ * called for. This is NOT how I would normally structure a project =/
+ *
+ * Also note, I have gone waaaaay verbose with the comments just so that my
+ * approach is clearly understood. I would not normally pollute code with so
+ * many comments (only comment what is necessary since code should be self
+ * describing).
+ *
+ * The following assumptions have been made based upon the provided spec:
+ *
+ *    a) all input will be valid (so minimal validation is performed)
+ *    b) all numbers can be represented using an unsigned integer
  */
+
+// ---------------------------------------------------------------------------
+// required headers
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -15,8 +31,12 @@
 #include <iterator>
 #include <stdexcept>
 #include <sstream>
+#include <string>
+#include <memory>
 #include <cassert>
+#include <cstring>
 
+// ---------------------------------------------------------------------------
 // Nothing to see here, just a little namespace injection!
 namespace std
 {
@@ -28,11 +48,12 @@ namespace std
       }
 }
 
-// save on a little typing
+// ---------------------------------------------------------------------------
+// save on a little typing (this should NEVER be done in a header file!
 using namespace std;
 
-// Blismedia namespace, and why not?
-namespace blismedia
+// not my most creative namespace name!
+namespace challenge
 {
    // since we're not able to use boost::bind, we'll use a little template
    // magic to allow us to define simple predicates that either operate on
@@ -69,7 +90,7 @@ namespace blismedia
    // The extents class represents the extents dataset. It transforms the raw
    // dataset into a vector of pairs, each of which represents either the start
    // or end of a range and the number of ranges that overlap that range. Put
-   // another way, we are building a data structure that represents the this:
+   // another way, we are building a data structure that represents this:
    //
    // This is an example data set of extents
    //    0 40
@@ -79,9 +100,12 @@ namespace blismedia
    //    24 30
    //
    // When stacked on top of each other this is how they'd look.
+   //
    //           1         2         3
    // 0123456789012345678901234567890123456789
-   // 1 2 3 4     3        2  3     1   0
+   // ----------------------------------------
+   // 1 2 3 4     3        2  3     1   0      <--- count of overlapped extents
+   // ----------------------------------------
    //
    //   |---------|
    //       |--------------|
@@ -89,7 +113,7 @@ namespace blismedia
    // |---------------------------------|
    //                         |-----|
    //
-   // I should be obvious that to see how many ranges a value falls within all
+   // It should be obvious that to see how many ranges a value falls within all
    // one must do is count the number of lines that overlap. We are going to
    // create a nice simple data structure that allows us to do just that.
    //
@@ -135,8 +159,10 @@ namespace blismedia
          extents(istream & in) { init(in); }
          extents(istream & in, size_t const reserve) { init(in); }
 
+         // set stuff up
          void init(istream & in,
-               size_t const reserve = 50000 /* max items expected */)
+               size_t const reserve = 50000 // max extent items expected
+               )
          {
             data_.reserve(reserve); // just to make push_back more efficient
 
@@ -272,6 +298,52 @@ namespace blismedia
 
 }
 
+// ---------------------------------------------------------------------------
+// a quick and dirty bit of testing (I'd normally use a proper testing
+// framework (such as Boost Unit Tesing Framework) but since the spec requires
+// nothing but standard C++ I've cobble together something.
+
+// a unique exception type we can use within our fixture
+struct utexcept : runtime_error
+{
+   utexcept(string const & msg)
+      : runtime_error(msg) {}
+};
+
+// a few macros do define our text fixture
+#define START_TEST(name) \
+   try {
+
+#define END_TEST() \
+   } \
+   catch (utexcept const & e) \
+      { std::cerr << "TEST FAILURE: " << e.what() << "\n"; } \
+   catch (exception const & e) \
+      { std::cerr << "TEST ERROR: " << e.what() << "\n"; } \
+   catch (...) \
+      { std::cerr << "TEST ERROR: cause unknown\n"; } \
+
+// a few macros to perform testing
+#define UTASSERT_(pred, msg, line, file) \
+   { \
+      if(! (pred) ) \
+      { \
+         ostringstream oss; \
+         oss << file << "(" << line << "): " << msg << "\n"; \
+         throw utexcept(oss.str()); \
+      } \
+   }
+
+#define UTASSERT_MSG(pred, msg) \
+   UTASSERT_(pred, msg, __LINE__, __FILE__);
+
+#define UTASSERT(pred) \
+   UTASSERT_MSG(pred, #pred);
+
+#define UTASSERT_EQUAL(lhs, rhs) \
+   UTASSERT_MSG(lhs==rhs, "equality expected");
+
+// ---------------------------------------------------------------------------
 // I prefer to encapsulate all my "app" functionality into a little singleton
 // class for two main reasons:
 //
@@ -279,36 +351,66 @@ namespace blismedia
 //   b) it means that main()'s only task is to handle uncaught exceptions
 struct app
 {
-   // this is the app entrypoint
-   static void run()
+   // Just a simple self test, which can be invoked from the command line.
+   // The "expected" data should be a text stream piped to stdin.
+   static void self_test(unsigned const cnt)
    {
-      // we need a little input
-      std::ifstream in_ext("extents.txt");
+      START_TEST("self test")
+
+      unsigned in;
+      cin >> in;
+
+      UTASSERT(cin.good())
+      UTASSERT_EQUAL(in, cnt)
+
+      END_TEST()
+   }
+
+   // this is the app entrypoint
+   static void run(bool const test)
+   {
+      // we need a little input (note, names are hard coded for convenience
+      // because the spec asserts this is what they must be called.
+      ifstream in_ext("extents.txt");
       if(!in_ext) { throw runtime_error("unable to open extents.txt file"); }
       in_ext.exceptions(ios::badbit);
 
-      std::ifstream in_num("numbers.txt");
+      ifstream in_num("numbers.txt");
       if(!in_ext) { throw runtime_error("unable to open numbers.txt file"); }
       in_num.exceptions(ios::badbit);
 
       // create an extents lookup object and then process the numbers
-      blismedia::extents extents(in_ext);
+      challenge::extents extents(in_ext);
       unsigned num = 0;
       while(in_num >> num)
       {
-         cout << extents.find(num) << endl;
+         unsigned const cnt = extents.find(num);
+
+         // to test or not to test, that is the question!
+         if(test)
+         {
+            // seems we're being slightly noble here
+            self_test(cnt);
+         }
+         else
+         {
+            // meh, I don't need no testing - just do it
+            cout << cnt << endl;
+         }
+
       }
    }
 };
 
-int main ()
+// ---------------------------------------------------------------------------
+int main (int argc, char * argv[])
 {
    int retval = 0;
 
    try
    {
       // main entry point for application
-      app::run();
+      app::run(argc > 1 && (0 == strcmp(argv[1], "test")));
    }
    catch(std::exception const & ex)
    {
