@@ -1,0 +1,75 @@
+SPECIFICATION
+
+Design a program to read a list of number pairs representing closed ranges from
+a file called "extents.txt". It should also read a list of points from a file
+called "numbers.txt".  Example files and format specifications are given below.
+
+The required function of your code is to write, to standard output, the number
+of ranges that contain each point. You should maintain the same ordering as the
+input points, one result per line. A point P is contained within a closed range
+[X,Y] if X <= P <= Y.
+
+"extents.txt" contains the ranges, one per line, with each line in the format
+"A <whitespace> B". The maximum size of this file is fifty million entries.
+"numbers.txt" contains a list of points, one per line. The number of points is
+potentially extremely large, perhaps numbering many billions. Either file may
+contain a number of duplicates, and may or may not end with a <newline>.
+
+The input can be assumed to be valid, given the above specification, and all
+numbers can be represented by unsigned integers.
+
+All code should be in a file called extents.cpp.
+
+---
+
+Example 1:
+        extents.txt
+        0 11
+        105 121
+        122 123
+        11 32
+
+        numbers.txt
+        1
+        2
+        5
+        13
+        62
+        28
+        62
+        16
+        33
+
+        output
+        1
+        1
+        1
+        1
+        0
+        1
+        0
+        1
+        0
+
+---
+
+Example 2:
+
+        extents.txt
+        0 8
+        0 8
+
+        numbers.txt
+        4
+        4
+
+        output
+        2
+        2
+
+---
+
+Example 3:
+
+See attachment expected.txt
+
