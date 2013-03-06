@@ -18,54 +18,63 @@ contain a number of duplicates, and may or may not end with a <newline>.
 The input can be assumed to be valid, given the above specification, and all
 numbers can be represented by unsigned integers.
 
-All code should be in a file called extents.cpp.
+To make it easier for us to compile and test your code, please put all of the
+source code (no matter how large) into a single file called "extents.cpp".
+Ensure that, when executed without any arguments, the solution reads from
+"extents.txt" and "numbers.txt" in the current directory and writes the
+result to standard output.
+
+It is your responsibility to ensure that the solution compiles and runs with
+no, or very superficial, editing required.  Write your solution using only
+C++ 03 Standard code, including the STL if you wish.
 
 ---
 
 Example 1:
-        extents.txt
-        0 11
-        105 121
-        122 123
-        11 32
 
-        numbers.txt
-        1
-        2
-        5
-        13
-        62
-        28
-        62
-        16
-        33
+extents.txt
+  0   11
+105  121
+122  123
+  1   32
 
-        output
-        1
-        1
-        1
-        1
-        0
-        1
-        0
-        1
-        0
+numbers.txt
+ 1
+ 2
+ 5
+13
+62
+28
+62
+16
+33
+
+output
+1
+1
+1
+1
+0
+1
+0
+1
+0
 
 ---
 
 Example 2:
 
-        extents.txt
-        0 8
-        0 8
+extents.txt
+0 8
+0 8
 
-        numbers.txt
-        4
-        4
+numbers.txt
+4
+4
 
-        output
-        2
-        2
+output
+2
+2
 
 ---
 
